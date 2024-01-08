@@ -1,0 +1,276 @@
+﻿@{
+    ViewBag.Title = "Home Page";
+}
+@model NewClubProject.Models.ClubMemberInfoModel
+
+<div class="jumbotron" id="heading1">
+    <h2 >Members Information</h2>
+</div>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-" />
+    <script src="~/Scripts/jquery-3.4.1.js"></script>
+    <link href="https://cdn.datatables.net/v/dt/dt-1.13.8/datatables.min.css" rel="stylesheet">
+    <script src="https://cdn.datatables.net/v/dt/dt-1.13.8/datatables.min.js"></script>
+
+</head>
+<body>
+    <div class="row">
+        <div class="form-group text-center">
+            <input type="button" class="btn btn-group-lg btn-success" name="AddNewMember" value="Add New Member" id="btnNewMember" onclick="btnNewMember()"/>
+            @*<input type="button" class="btn btn-group-lg btn-primary" name="List" value="View Member List" id="btnViewList" onclick="btnMemberShow()"/>*@
+        </div>
+    </div>
+    <div class="form-group" id="memberTable">
+        <table id="memeberTable" >
+            <thead>
+                <tr>
+                    <th class="col-sm-1">ID</th>
+                    <th class="col-sm-2">Name</th>
+                    <th class="col-sm-2">Mobile Number</th>
+                    <th class="col-sm-2">National ID</th>
+                    <th class="col-sm-3">Address</th>
+                    <th class="col-sm-2">Club Name</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+
+    </div>
+ 
+    <div class="row form-group" id="formInfo">
+        <h2 class="jumbotron">Enter New Member</h2>
+        <div class="col-sm-12">
+
+            <label class="col-sm-1" for="txtMemberName">Name</label>
+            <div class="col-sm-3">
+                <input type="text" class="form-control" id="txtMemberName" />
+            </div>
+            <label class="col-sm-1" for="txtMobile">Mobile </label>
+            <div class="col-sm-3">
+                <input type="text" class="form-control" id="txtMobile" />
+            </div>
+            <label class="col-sm-1" for="txtNid">NID</label>
+            <div class="col-sm-3">
+                <input type="text" class="form-control" id="txtNid" />
+            </div>
+        </div>
+        <div class="col-sm-12">
+
+            <label class="col-sm-1 ">Select Club</label>
+            <div class="col-sm-3">
+                <select class="form-control" id="txtSelectClub">
+                    
+                </select>
+            </div>
+            <label class="col-sm-1 ">ClubID</label>
+            <div class="col-sm-2">
+                <input type="text" class="form-control"  id="txtClubId" />
+            </div>
+            <label class="col-sm-1" for="txtAddress">Address</label>
+            <div class="col-sm-4">
+                <input type="text" class="form-control" id="txtAddress" />
+            </div>
+        </div>
+
+        <div class="form-group text-center">
+            <br />
+            <input type="button" class="btn btn-group-lg btn-primary" name="Add" value="Add" id="btnMembertable" onclick="insertData();" />
+        </div>
+
+        <div class="form-group" >
+
+            <table class="table entry-form" id="tableAddMember" >
+                <thead>
+                    <tr>
+                        <th class="col-sm-2">Name</th>
+                        <th class="col-sm-2">Mobile Number</th>
+                        <th class="col-sm-2">National ID</th>
+                        <th class="col-sm-2">Address</th>
+                        <th class="col-sm-2">Club Name</th>
+                        <th class="col-sm-2">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+            @*<div class="table-scrollable">
+                <table class="table  table-hover table-bordered">
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>*@
+            <div class="form-group text-center">
+                <input type="button" class="btn btn-group-lg btn-success" name="Add" value="SAVE" id="btnSave" onclick="saveData()" />
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+
+    $(document).ready(function () {
+           $('#formInfo').hide();
+            $.ajax({
+                url: '@Url.Action("getMembersInfo", "Home")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                   // console.log(data);
+                    $('#memeberTable').DataTable({
+                        paging: true,
+                        sort: true,
+                        searching: true,
+                        scrollY: 200,
+                        data: data,
+                        columns: [
+                            { "data": "MemberId" },
+                            { "data": "MemberName" },
+                            { "data": "MobileNumber" },
+                            { "data": "NID" },
+                            { "data": "MemberAddress" },
+                            { "data": "ClubName" }
+                        ]
+                    });
+                },
+                error: function (error) {
+                    console.error('Error loading data:', error)
+                }
+
+            });
+
+
+
+
+
+    });
+        function saveData() {
+
+            $.ajax({
+                url: '@Url.Action("SaveData", "Home")',
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ JMemberList: JMemberList}),
+                success: function (result) {
+                    alert(result);
+                },
+                error: function (error) {
+                    console.error('Error:', error);
+                }
+            });
+
+        }
+        // JSON Array List JMemberList
+        var JMemberList = [];
+        var table = $('#tableAddMember').DataTable({
+            columns: [
+                { data: 'MemberName' },
+                { data: 'MobileNumber' },
+                { data: 'NID' },
+                { data: 'ClubName' },
+                { data: 'ClubId' },
+                { data: 'MemberAddress' },
+            ]
+        });
+        // Build the JSON Object JMember -- from form Data
+        // Push the object in JMemberList
+        function insertData() {
+            var JMember = {
+                MemberName: $('#txtMemberName').val(),
+                MobileNumber: $('#txtMobile').val(),
+                NID: $('#txtNid').val(),
+                ClubName: $('#txtSelectClub').val(),
+                ClubId: $('#txtClubId').val(),
+                MemberAddress: $('#txtAddress').val()
+            };
+            table.clear();
+
+            // While Pushing the data, validate the NID and Other fileds
+            if (!isDuplicate(JMember.NID, JMember.MobileNumber)) {
+                JMemberList.push(JMember);
+
+                updateDataTable();
+
+            }
+            else {
+                alert('Duplicate NID or Name');
+            }
+        }
+
+
+        // foreach member in JMemberList check for the NID of JMemeber Object
+        // If not found same Nid , then Push, Otehrwise give an alert that duplicate NID
+        function isDuplicate(NID, MblNumber ) {
+            var isDuplicate = false;
+
+            JMemberList.forEach(function (member) {
+                if (member.NID === NID || member.MobileNumber === MblNumber) {
+                    isDuplicate = true;
+
+                }
+            });
+
+            return isDuplicate;
+        }
+
+
+        // Update the Datatable
+        function updateDataTable() {
+            table.rows.add(JMemberList).draw();
+        }
+        // In Save method, you will send the JMemberList And ClubId to the contrller through ajax Call
+        //
+
+        function loadClubData() {
+        $('#txtSelectClub').append("<option value='0'>-Select-</option>");
+            $.ajax({
+                url: '@Url.Action("getClubInfo", "Home")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+                    $.each(data, function (key, value) {
+                        $("#txtSelectClub").append($("<option value='" + value.ClubName + "'>" + value.ClubName + "</option>"));
+
+                    });
+
+                },
+                error: function (error) {
+                    console.error('Error loading data:', error);
+                }
+            });
+        }
+
+
+    function btnNewMember() {
+        $('#formInfo',).show();
+        $('#btnNewMember, #memberTable, #heading1').hide();
+        loadClubData();
+
+
+    }
+// JSON Array List JMemberList
+
+
+        // Build the JSON Object JMember -- from form Data
+        // Push the object in JMemberList
+
+        // While Pushing the data, validate the NID and Other fileds
+
+        // foreach member in JMemberList check for the NID of JMemeber Object
+
+        // If not found same Nid , then Push, Otehrwise give an alert that duplicate NID
+
+
+        // Update the Datatable
+
+        // In Save method, you will send the JMemberList And ClubId to the contrller through ajax Call
+
+
+
+
+
+</script>

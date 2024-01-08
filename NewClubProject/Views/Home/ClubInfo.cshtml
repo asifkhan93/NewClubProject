@@ -1,0 +1,211 @@
+﻿
+@{
+    ViewBag.Title = "ClubInfo";
+}
+@model NewClubProject.Models.ClubMemberInfoModel
+<div class="jumbotron">
+    <h2>Add New Club </h2>
+</div>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="utf-" />
+    <script src="~/Scripts/jquery-3.4.1.js"></script>
+    <link href="https://cdn.datatables.net/v/dt/dt-1.13.8/datatables.min.css" rel="stylesheet">
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.js"></script>
+    @*<script src="https://cdn.datatables.net/v/dt/dt-1.13.8/datatables.min.js"></script>*@
+
+</head>
+<body>
+    <div class="form-group">
+        <label class="col-sm-2" for="txtClubName">Club Name</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" id="txtClubName" />
+        </div>
+        <label class="col-sm-2" for="txtClubAddress">Address</label>
+        <div class="col-sm-10">
+            <input type="text" class="form-control" id="txtClubAddress" />
+        </div>
+        <div class="form-group text-center">
+            <input type="button" class="btn btn-group-lg btn-success" name="ADD" value="ADD" id="btnAdd" onclick="insertData()" />
+            <input type="button" class="btn btn-group-lg btn-primary" name="ViewClubList" value="View Club List" id="btnClubList" onclick="btnShowClub()" />
+        </div>
+        <div class="form-group" id="ClubList" hidden>
+            <table id="tableClubInfo">
+                <thead>
+                    <tr>
+                        <th class="col-sm-4">ID</th>
+                        <th class="col-sm-4">Club Name</th>
+                        <th class="col-sm-4">Club Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+            @*<div class="form-group text-center">
+                <br />
+
+                <input type="button" class="btn btn-group-lg btn-danger" name="Update " value="Update" id="btnUpdate" />
+
+            </div>*@
+        </div>
+        <div class="form-group" id="addclub" >
+            <table id="tableaddclub">
+                <thead>
+                    <tr>
+                        <th class="col-sm-4">club name</th>
+                        <th class="col-sm-4">club address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
+            <div class="form-group text-center">
+                <br />
+
+                <input type="button" class="btn btn-group-lg btn-success" name="Save" value="Save" id="btnSave" onclick="SaveData()" />
+
+            </div>
+        </div>
+
+    </div>
+
+</body>
+
+</html>
+<script>
+    $(document).ready(function () {
+
+        function loadData() {
+            $('#formInfo').hide();
+
+            $.ajax({
+                url: '@Url.Action("getClubInfo", "Home")',
+                type: 'GET',
+                dataType: 'json',
+                success: function (data) {
+
+                    $('#tableClubInfo').DataTable({
+                        paging: true,
+                        sort: true,
+                        searching: true,
+                        scrollY: 200,
+                        data: data,
+                        columns: [
+                            { "data": "ClubId"},
+                            { "data": "ClubName" },
+                            { "data": "ClubAddress" },
+                            //{
+                            //    // Edit button
+                            //    "data": "ClubId",
+                            //    "render": function (data, type, row) {
+                            //        return '<button class="btn btn-info edit-button" data-id="' + data + '">Edit</button>';
+                            //    }
+                            //},
+                            //{
+                            //    // Delete button
+                            //    "data": "ClubId",
+                            //    "render": function (data, type, row) {
+                            //        return '<button class="btn btn-danger delete-button" data-id="' + data + '">Delete</button>';
+                            //    }
+                            //}
+                            
+                        ]
+
+                    });
+                   
+                },
+                error: function (error) {
+                    console.error('Error loading data:', error)
+                }
+
+            });
+        }
+        loadData();
+    });
+
+    var JClubList = [];
+    var table = $('#tableaddclub').DataTable({
+        columns: [
+            { data: 'ClubName' },
+            { data: 'ClubAddress'},
+        ]
+    });
+    function insertData() {
+        $('#tableaddclub').show();
+        var jClub = {
+            ClubName: $('#txtClubName').val(),
+            ClubAddress: $('#txtClubAddress').val(),
+        };
+        table.clear();
+
+        if (!isDuplicate(jClub.ClubName)) {
+            JClubList.push(jClub);
+
+            updateDataTable();
+        }
+        else {
+
+            alert('Duplicate Club Name.');
+        }
+    };
+
+    function isDuplicate(clubName) {
+        var isDuplicate = false;
+
+        JClubList.forEach(function (club) {
+            if (club.ClubName === clubName) {
+                isDuplicate = true;
+            }
+        });
+        return isDuplicate;
+    }
+    function updateDataTable() {
+        table.rows.add(JClubList).draw();
+
+        //$('#tableaddclub').on('click', 'tbody tr', function () {
+        //    table.rows(this).edit();
+
+        //});
+
+    }
+
+
+
+
+    function SaveData() {
+
+        $.ajax({
+            url: '@Url.Action("AddClub", "Home")',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ JClubList: JClubList }),
+            success: function (result) {
+                alert(result);
+            },
+            error: function (err) {
+                console.error(err);
+            }
+        })
+    }
+    //function BtnClick() {
+
+    //    var ClubName = $("#txtClubName").val();
+    //    var ClubAddress = $("#txtClubAddress").val();
+
+    //    var obj = {
+    //        ClubName: ClubName,
+    //        ClubAddress: ClubAddress,
+    //    }
+
+    //    Save();
+    //}
+
+    function btnShowClub() {
+
+        $('#ClubList').fadeToggle();
+    }
+</script>
