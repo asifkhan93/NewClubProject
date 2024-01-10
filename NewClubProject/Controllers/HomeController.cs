@@ -40,27 +40,27 @@ namespace NewClubProject.Controllers
             return View();
         }
 
-        public JsonResult getMembersInfo() 
-        {
-            DataSet ds = dblayer.ShowMemberInfo();
-            List<ClubMemberInfoModel> listing = new List<ClubMemberInfoModel>();
-            foreach (DataRow dr in ds.Tables[0].Rows) 
-            {
-                listing.Add(new ClubMemberInfoModel 
-                {
-                    MemberId = Convert.ToInt32(dr["Id"]),
-                    MemberName = dr["Name"].ToString(),
-                    MemberAddress = dr["Address"].ToString(),
-                    MobileNumber = Convert.ToInt32(dr["MobileNumber"]),
-                    NID = Convert.ToInt32(dr["NID"]),
-                    ClubId = Convert.ToInt32(dr["ClubID"]),
-                    ClubName = dr["ClubName"].ToString()
-                });
+        //public JsonResult getMembersInfo() 
+        //{
+        //    DataSet ds = dblayer.ShowMemberInfo();
+        //    List<ClubMemberInfoModel> listing = new List<ClubMemberInfoModel>();
+        //    foreach (DataRow dr in ds.Tables[0].Rows) 
+        //    {
+        //        listing.Add(new ClubMemberInfoModel 
+        //        {
+        //            MemberId = Convert.ToInt32(dr["Id"]),
+        //            MemberName = dr["Name"].ToString(),
+        //            MemberAddress = dr["Address"].ToString(),
+        //            MobileNumber = Convert.ToInt32(dr["MobileNumber"]),
+        //            NID = Convert.ToInt32(dr["NID"]),
+        //            ClubId = Convert.ToInt32(dr["ClubID"]),
+        //            ClubName = dr["ClubName"].ToString()
+        //        });
                
-            }
-            var data= listing;
-            return Json(listing, JsonRequestBehavior.AllowGet);
-        }
+        //    }
+        //    var data= listing;
+        //    return Json(listing, JsonRequestBehavior.AllowGet);
+        //}
 
         public JsonResult getClubInfo()
         {
@@ -97,9 +97,9 @@ namespace NewClubProject.Controllers
                         cmd.Parameters.AddWithValue("@Name", member.MemberName);
                         cmd.Parameters.AddWithValue("@MobileNumber", member.MobileNumber);
                         cmd.Parameters.AddWithValue("@NID", member.NID);
-                        cmd.Parameters.AddWithValue("@Address", member.MemberAddress);
                         cmd.Parameters.AddWithValue("@ClubId", member.ClubId);
                         cmd.Parameters.AddWithValue("@ClubName", member.ClubName);
+                        cmd.Parameters.AddWithValue("@Address", member.MemberAddress);
                         cmd.ExecuteNonQuery();
                     }
                     else
@@ -179,6 +179,84 @@ namespace NewClubProject.Controllers
             int count = (int)cmd.ExecuteScalar();
             return count > 0;
         }
+
+
+
+        [HttpGet]
+        public JsonResult GetClubIDMember(string ClubName) 
+        {
+            List<ClubMemberInfoModel> listing = ToGetClubInfo( ClubName);
+
+            return Json(listing, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpGet]
+        public JsonResult GetMemberInfoForClub(string ClubName) 
+        {
+            List<ClubMemberInfoModel> listing = ToGetMemberList(ClubName);
+            return Json(listing, JsonRequestBehavior.AllowGet);
+        }
+
+        private List<ClubMemberInfoModel> ToGetMemberList(string ClubName) 
+        {
+            List<ClubMemberInfoModel> listing = new List<ClubMemberInfoModel>();
+            con.Open();
+            string query = "SELECT Id, Name, Address, MobileNumber, NID, ClubName FROM PersonalInfo WHERE ClubName = @ClubName";
+
+            using (SqlCommand cmd = new SqlCommand(query, con)) 
+            {
+                cmd.Parameters.AddWithValue("@ClubName", ClubName);
+
+                using (SqlDataReader dr = cmd.ExecuteReader())
+                {
+                    while (dr.Read())
+                    {
+                        listing.Add(new ClubMemberInfoModel
+                        {
+                            MemberId = Convert.ToInt32(dr["Id"]),
+                            MemberName = dr["Name"].ToString(),
+                            MemberAddress = dr["Address"].ToString(),
+                            MobileNumber = Convert.ToInt32(dr["MobileNumber"]),
+                            NID = Convert.ToInt32(dr["NID"]),
+                            ClubName = dr["ClubName"].ToString()
+                        });
+
+                    }
+                    
+                }
+                return listing;
+            }
+        }
+
+        private List<ClubMemberInfoModel> ToGetClubInfo(string clubName)
+        {
+            List<ClubMemberInfoModel> listing = new List<ClubMemberInfoModel>();
+            con.Open();
+            string query = "SELECT c.ID AS ClubID, COUNT(Name) AS TotalMember FROM PersonalInfo p RIGHT JOIN ClubInfo c on p.ClubName=c.ClubName WHERE c.ClubName = @ClubName GROUP BY c.ID;";
+
+            //var cmd = new SqlCommand(query, con, _transaction);
+            using (SqlCommand cmd = new SqlCommand(query, con))
+            {
+                cmd.Parameters.AddWithValue("@ClubName", clubName);
+
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            listing.Add(new ClubMemberInfoModel
+                            {
+                                ClubId = Convert.ToInt32(reader["ClubID"]),
+                                TotalMembers = Convert.ToInt32(reader["TotalMember"])
+                            });
+                        }
+                    }
+            }
+            
+
+            return listing;
+        }
+
 
     }
 }

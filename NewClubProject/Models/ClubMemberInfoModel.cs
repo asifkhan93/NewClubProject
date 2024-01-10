@@ -16,5 +16,6 @@ namespace NewClubProject.Models
         public string MemberAddress { get; set; }
         public int NID { get; set; }
         public int MobileNumber { get; set; }
+        public int TotalMembers { get; set; }
     }
 }

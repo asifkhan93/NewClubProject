@@ -20,61 +20,66 @@
     <div class="row">
         <div class="form-group text-center">
             <input type="button" class="btn btn-group-lg btn-success" name="AddNewMember" value="Add New Member" id="btnNewMember" onclick="btnNewMember()"/>
-            @*<input type="button" class="btn btn-group-lg btn-primary" name="List" value="View Member List" id="btnViewList" onclick="btnMemberShow()"/>*@
+           <input type="button" class="btn btn-group-lg btn-primary" name="List" value="View Member List" id="btnViewList" onclick="btnViewMember()"/>
         </div>
     </div>
-    <div class="form-group" id="memberTable">
-        <table id="memeberTable" >
-            <thead>
-                <tr>
-                    <th class="col-sm-1">ID</th>
-                    <th class="col-sm-2">Name</th>
-                    <th class="col-sm-2">Mobile Number</th>
-                    <th class="col-sm-2">National ID</th>
-                    <th class="col-sm-3">Address</th>
-                    <th class="col-sm-2">Club Name</th>
-                </tr>
-            </thead>
-            <tbody>
 
-            </tbody>
-        </table>
-
-    </div>
  
-    <div class="row form-group" id="formInfo">
-        <h2 class="jumbotron">Enter New Member</h2>
-        <div class="col-sm-12">
+    <div class="row form-group">
 
-            <label class="col-sm-1" for="txtMemberName">Name</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" id="txtMemberName" />
-            </div>
-            <label class="col-sm-1" for="txtMobile">Mobile </label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" id="txtMobile" />
-            </div>
-            <label class="col-sm-1" for="txtNid">NID</label>
-            <div class="col-sm-3">
-                <input type="text" class="form-control" id="txtNid" />
-            </div>
-        </div>
-        <div class="col-sm-12">
 
-            <label class="col-sm-1 ">Select Club</label>
-            <div class="col-sm-3">
+        <div class="col-sm-12">
+            <div class="col-sm-4">
+                <label for="txtSelectClub">Select Club</label>
                 <select class="form-control" id="txtSelectClub">
-                    
                 </select>
             </div>
-            <label class="col-sm-1 ">ClubID</label>
-            <div class="col-sm-2">
-                <input type="text" class="form-control"  id="txtClubId" />
-            </div>
-            <label class="col-sm-1" for="txtAddress">Address</label>
             <div class="col-sm-4">
-                <input type="text" class="form-control" id="txtAddress" />
+
+                <label for="txtClubId" >Club Id</label>
+                <input type="text" class="form-control" id="txtClubId" readonly />
             </div>
+
+            <div class="col-sm-4">
+                <label for="txtTotalMember">Total Members</label>
+                <input class="form-control col-sm-2" type="text" id="txtTotalMember" readonly />
+            </div>
+        </div>
+        <div class="col-sm-12" id="formInfo">
+
+            <div class="col-sm-3">
+                <label for="txtClubId">Name</label>
+                <input type="text" class="form-control" id="txtMemberName" placeholder="Enter Name" />
+            </div>
+            <div class="col-sm-3">
+                <label for="txtClubId">Mobile Number</label>
+                <input type="text" class="form-control" id="txtMobile" placeholder="Enter Mobile Number" />
+            </div>
+            <div class="col-sm-3">
+                <label for="txtClubId">NID</label>
+                <input type="text" class="form-control" id="txtNid" placeholder="Enter NID" />
+            </div>
+            <div class="col-sm-3">
+                <label for="txtClubId">Address</label>
+                <input type="text" class="form-control" id="txtAddress" placeholder="Enter Address" />
+            </div>
+        </div>
+        <div class="form-group" id="memberTableDiv">
+            <table id="memeberTable" hidden>
+                <thead>
+                    <tr>
+                        <th class="col-sm-1">ID</th>
+                        <th class="col-sm-2">Name</th>
+                        <th class="col-sm-2">Mobile Number</th>
+                        <th class="col-sm-2">National ID</th>
+                        <th class="col-sm-3">Address</th>
+                        <th class="col-sm-2">Club Name</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+
         </div>
 
         <div class="form-group text-center">
@@ -82,23 +87,23 @@
             <input type="button" class="btn btn-group-lg btn-primary" name="Add" value="Add" id="btnMembertable" onclick="insertData();" />
         </div>
 
-        <div class="form-group" >
+        <div class="form-group" id="tableAddMemberDiv">
 
-            <table class="table entry-form" id="tableAddMember" >
+            <table class="table entry-form" id="tableAddMember">
                 <thead>
                     <tr>
                         <th class="col-sm-2">Name</th>
                         <th class="col-sm-2">Mobile Number</th>
                         <th class="col-sm-2">National ID</th>
-                        <th class="col-sm-2">Address</th>
                         <th class="col-sm-2">Club Name</th>
-                        <th class="col-sm-2">Action</th>
+                        <th class="col-sm-2">Club ID</th>
+                        <th class="col-sm-2">Address</th>
                     </tr>
                 </thead>
                 <tbody>
-
                 </tbody>
             </table>
+
             @*<div class="table-scrollable">
                 <table class="table  table-hover table-bordered">
                     <tbody id="tbody"></tbody>
@@ -114,11 +119,54 @@
 <script>
 
     $(document).ready(function () {
-           $('#formInfo').hide();
+        $('#formInfo').hide();
+        $('#btnMembertable').hide();
+        $('#btnSave').hide();
+
+        loadClubData();
+
+        $('#txtSelectClub').on('change', function () {
+            var selectedClub = $(this).val();
             $.ajax({
-                url: '@Url.Action("getMembersInfo", "Home")',
+                url: '@Url.Action("GetClubIDMember", "Home")',
+                type: 'GET',
+                data: { clubName: selectedClub },
+                success: function (data) {
+                    // Check if data is an object
+                    if (typeof data === 'object') {
+                        var defaultValue = 'Not Found';
+                        var clubId = data[0].ClubId ?? defaultValue;
+                        var totalMember = data[0].TotalMembers ?? defaultValue;
+
+                        // Rest of the code
+                    } else {
+                        console.error('Invalid data format. Expected an object.');
+                    }
+                    $('#txtClubId').val(clubId);
+                    $('#txtTotalMember').val(totalMember);
+                },
+                error: function () {
+                    console.error('Error...!!!');
+                }
+            });
+
+
+        });
+
+
+    });
+
+    function getMemberListForClub() {
+
+             $('#memeberTable').show();
+             $('#tableAddMemberDiv').hide();
+              var selectedClub = $('#txtSelectClub').val();
+
+            $.ajax({
+                url: '@Url.Action("GetMemberInfoForClub", "Home")',
                 type: 'GET',
                 dataType: 'json',
+                data: { clubName: selectedClub },
                 success: function (data) {
                    // console.log(data);
                     $('#memeberTable').DataTable({
@@ -126,6 +174,7 @@
                         sort: true,
                         searching: true,
                         scrollY: 200,
+                        bDestroy: true,
                         data: data,
                         columns: [
                             { "data": "MemberId" },
@@ -136,18 +185,19 @@
                             { "data": "ClubName" }
                         ]
                     });
+
                 },
                 error: function (error) {
                     console.error('Error loading data:', error)
                 }
 
-            });
+             });
 
 
 
 
+    }
 
-    });
         function saveData() {
 
             $.ajax({
@@ -186,6 +236,7 @@
                 ClubName: $('#txtSelectClub').val(),
                 ClubId: $('#txtClubId').val(),
                 MemberAddress: $('#txtAddress').val()
+
             };
             table.clear();
 
@@ -221,12 +272,15 @@
         // Update the Datatable
         function updateDataTable() {
             table.rows.add(JMemberList).draw();
+            $('#memeberTable').DataTable().destroy();
+
         }
         // In Save method, you will send the JMemberList And ClubId to the contrller through ajax Call
         //
 
-        function loadClubData() {
-        $('#txtSelectClub').append("<option value='0'>-Select-</option>");
+
+    function loadClubData() {
+        $('#txtSelectClub').append("<option value='0'>-Select Club-</option>");
             $.ajax({
                 url: '@Url.Action("getClubInfo", "Home")',
                 type: 'GET',
@@ -244,14 +298,19 @@
             });
         }
 
+    function btnViewMember()
+    {
+        getMemberListForClub();
 
-    function btnNewMember() {
-        $('#formInfo',).show();
-        $('#btnNewMember, #memberTable, #heading1').hide();
-        loadClubData();
-
-
+        $('#tableAddMember').DataTable().destroy();
     }
+    function btnNewMember() {
+        $('#formInfo, #btnViewList2, #btnMembertable, #btnSave, #tableAddMemberDiv').show();
+        $('#memberTableDiv, #heading1, #btnViewList1').hide();
+        //loadClubData();
+    }
+
+
 // JSON Array List JMemberList
 
 
